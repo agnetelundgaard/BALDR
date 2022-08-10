@@ -1,8 +1,5 @@
 ---
 title: "BALDR: Biomarker AnaLysis for Diabetes Research"
-author: 
-  name: "By Agnete Troen Lundgaard, Karina Banasik & Søren Brunak"
-  affiliation: "Translational Disease Systems Biologi, Center for Protein Research, University Copenhagen" 
 date: "Version 0.7, August 2022"
 output: 
   html_document: 
@@ -20,9 +17,14 @@ editor_options:
     wrap: 72
 ---
 
-<img src="./report_input/RHAPSODY_Logo_WEB_Color.png" style="position:absolute;top:50px;right:30px;with:80px;height:80px" />
+<img src="./report_input/cpr-logo-vector.jpg" style="position:absolute;top:140px;right:30px;width:125px" />
+<img src="./report_input/IMI_Logo_Web.png" style="position:absolute;top:230px;right:30px;width:260px" />
+<img src="./report_input/RHAPSODY_Monogram_POSTER_Color.png" style="position:absolute;top:320px;right:180px;width:80px" />
+<img src="./report_input/EFPIA_Logo_Word.png" style="position:absolute;top:320px;right:30px;width:125px" />
+<img src="./report_input/WBF_SBFI_E_CMYK_pos_hoch.jpg" style="position:absolute;top:410px;right:165px;width:125px" />
+<img src="./report_input/flag_yellow_high.jpg" style="position:absolute;top:410px;right:30px;width:125px" />
 
-<img src="./report_input/cpr-logo-vector.jpg" style="position:absolute;top:140px;right:30px;with:80px;height:80px" />
+
 
 ```{r run on server, include= FALSE}
 # Run locally or on server
@@ -165,10 +167,10 @@ meta_exp_file <- read_tsv(str_c(data_dir, "prepped_data/", "RHAPSODY_rank_metaan
 
 ```{r load candidate list - local, results = 'hide', echo = FALSE, eval = run_locally}
 # example for paper
-# my_list <- scan(str_c(data_dir, "example_data/", "RHAPSODY_candidates_uniprot.csv"), sep=',', what = "", quiet = TRUE) %>%
-#   as_tibble() %>%
-#   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
-#   distinct(uniprot)
+my_list <- scan(str_c(data_dir, "example_data/", "RHAPSODY_candidates_uniprot.csv"), sep=',', what = "", quiet = TRUE) %>%
+  as_tibble() %>%
+  left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
+  distinct(uniprot)
 
 # # Troels' uniprot ID's
 # my_list <- scan(str_c(data_dir, "example_data/", "troels_uniprot_ids.csv"), sep=',', what = "", quiet = TRUE) %>%
@@ -176,11 +178,11 @@ meta_exp_file <- read_tsv(str_c(data_dir, "prepped_data/", "RHAPSODY_rank_metaan
 #   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
 #   distinct(uniprot)
 
-# Drugbank targets
-my_list <- scan(str_c(data_dir, "example_data/", "drugbank_uniprot_ids.csv"), sep=',', what = "", quiet = TRUE) %>%
-  as_tibble() %>%
-  left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
-  distinct(uniprot)
+# # Drugbank targets
+# my_list <- scan(str_c(data_dir, "example_data/", "drugbank_uniprot_ids.csv"), sep=',', what = "", quiet = TRUE) %>%
+#   as_tibble() %>%
+#   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
+#   distinct(uniprot)
 ```
 
 ```{r load candidate list - server, results = 'hide', echo = FALSE, eval = run_on_server}
@@ -238,7 +240,7 @@ my_hits_bmk <- my_protein_list %>%
   distinct(uniprot) %>% 
   left_join(., biomarker_list) %>% 
   mutate(target = ifelse(!is.na(uniprot_gene), uniprot_gene, uniprotkb_id), .before = everything())  %>% 
-  left_join(., meta_exp_file %>% rename(meta_rank = rank, uniprot_gene = gene_name)) %>% 
+  left_join(., meta_exp_file %>% rename(meta_rank = rank)) %>% 
   left_join(., text_mining_data)
 
 ```
@@ -371,38 +373,38 @@ targetoverview_data %>%
 
 Table content:
 
--   **Protein name (UniProt)**: Name of gene product.\
+-   **Protein name (UniProt)**: Name of gene product.\  
 
--   **Gene synonyms (HPA)**: A list of different synonyms (in uppercase) for the (official) gene name provided by HPA.\
+-   **Gene synonyms (HPA)**: A list of different synonyms (in uppercase) for the (official) gene name provided by HPA.\  
 
--   **UniProt ID (UniProt)**: Link to UniProt for additional information on the target.\
+-   **UniProt ID (UniProt)**: Link to UniProt for additional information on the target.\  
 
 -   **Protein class (HPA)**: Classification of the protein target based on function and cellular compartment and/or disease and drug related
-    information.\
+    information.\  
 
--   **Subcellular location (HPA)**: HPA-assigned subcellular location.\
+-   **Subcellular location (HPA)**: HPA-assigned subcellular location.\  
 
--   **Protein family (PHAROS)**: Protein family the target is assigned to.\
+-   **Protein family (PHAROS)**: Protein family the target is assigned to.\  
     Levels: GPCR, Nuclear Receptor, Kinase, Enzyme, Ion Channel,
     Transcription Factor, Transporter, Epigenetic, oGPCR, TF/Epigenetic,
     Non-IDG.\
     Special emphasis is given on four superfamilies that are central to
     the NIH IDG initiative: GPCRs, kinases, ion channels, and nuclear
-    receptors.\
+    receptors.\  
 
 -   **Target development level (PHAROS)**: Target Development Level (TDL) (for more information on TDL see [here](http://juniper.health.unm.edu/tcrd/)).\ 
-    TDL categorizes the target based on known information and potential drugability, with descending ranking:\
-    -   Tclin: Approved drugs with known mechanism of action.\
+    TDL categorizes the target based on known information and potential drugability, with descending ranking:\  
+    -   Tclin: Approved drugs with known mechanism of action.\  
     -   Tchem: If associated with small molecule activities in ChEMBL or
-        DrugCentral.\
+        DrugCentral.\  
     -   Tbio: If not associated with small molecule or drug activities,
         but have a GO Molecular Function or Biological Process leaf
         term(s) with an Experimental Evidence code or/and have a
-        confirmed OMIM phenotype.\
+        confirmed OMIM phenotype.\  
     -   Tdark: If not known drug or small molecule activities, and
         PubMed text-mining score from Jensen Lab <5 or/and ≥3 Gene
         RIFs or/and ≥50 Antibodies available on
-        <http://antibodypedia.com>.\
+        <http://antibodypedia.com>.\  
 
 
 \newline
@@ -468,14 +470,14 @@ descriptions_data %>%
 
 ### About {.unnumbered}
 
-Table content:
+Table content:\  
 
--   **Description (PHAROS)**: Full-text description of the role/function of the protein from PHAROS.\
+-   **Description (PHAROS)**: Full-text description of the role/function of the protein from PHAROS.\  
 
--   **Diabetes associations (Open Targets)**: Gene-disease (diabetes mellitus) association through experiments or clinical trials. Direct associations with T1DM, T2DM and GDM are shown specifically, while all other diabetes mellitus diseases are included in "Other". \
+-   **Diabetes associations (Open Targets)**: Gene-disease (diabetes mellitus) association through experiments or clinical trials. Direct associations with T1DM, T2DM and GDM are shown specifically, while all other diabetes mellitus diseases are included in "Other". \  
 
 -   **Suggested biomarker**: Known and suggested biomarkers from [Abbasi et al, 2016](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0163721),
-    RHAPSODY partners (collected by the RHAPSODY biomarker taskforce) and based on PPI-network analysis of known biomarkers (in-house analysis).\
+    RHAPSODY partners (collected by the RHAPSODY biomarker taskforce) and based on PPI-network analysis of known biomarkers (in-house analysis).\  
 
 
 \newline  
@@ -535,13 +537,13 @@ volcano_significant_all %>%
 
 #### About {.unnumbered}
 
-Individual volcano plots for each target with results from all RHAPSODY experiments plotted.
+Individual volcano plots for each target with results from all RHAPSODY experiments plotted.\  
 
--   Shape: Points are shaped according to omics type.
+-   Shape: Points are shaped according to omics type.\  
 -   Color: Points with an adjusted p-value <`r p_value_threshold` are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, 
-    while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
+    while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\  
 
-Empty plots indicates that the specific target were not measured in RHAPSODY experiments.\
+Empty plots indicates that the specific target were not measured in RHAPSODY experiments.\  
 
 ### Compare best experimental result for each target based on p-value {.tabset .tabset-fade .tabset-pills}
 
@@ -659,31 +661,31 @@ ranklist_omics_data %>%
 #### About {.unnumbered}
 
 Omics-specific volcano plots with the best result for each tissue based on lowest adjusted p-value. 
-Best results (lowest adjusted p-value) for all targets is shown as background points.
+Best results (lowest adjusted p-value) for all targets is shown as background points.\  
 
--   Shape: Points are shaped according to omics type.\
+-   Shape: Points are shaped according to omics type.\  
 -   Color: Points with an adjusted p-value <`r p_value_threshold` are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, 
-    while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
--   Background: The best results for all targets detected in RHAPSODY experiments are included as a reference background in light gray with a reduced size.
+    while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\  
+-   Background: The best results for all targets detected in RHAPSODY experiments are included as a reference background in light gray with a reduced size.\  
 
 \newline
 
 The best results from each target is shown in a table format together with the experiment-specific information, including:
 
 -   **Experiment**: Experimental setting within the RHAPSODY consortium. Find more information on the experiments
-    [here](https://docs.google.com/spreadsheets/d/18Xx9HGK3B-LlqYymG4oD74MsAsFADUOaCNh3NyCszTE/edit#gid=16079932).\
--   **Tissue**: The tissue the target was detected in. The tissue availability is omics dependent:\
-    -   Adipose tissue: Transcriptomics.\
-    -   Blood: Proteomics.\
-    -   Islets: Transcriptomics.\
-    -   Islets LCM (laser capture microdissected): Transcriptomics.\
-    -   Liver: Transcriptomics.\
-    -   Muscles: Transcriptomics.\
--   **Comparison**: Experimental setup or modeling.\
--   **log10 fold change**: log10-transformed fold change (FC).\
--   **Adj. p-value**: FDR adjusted p-value.\
+    [here](https://docs.google.com/spreadsheets/d/18Xx9HGK3B-LlqYymG4oD74MsAsFADUOaCNh3NyCszTE/edit#gid=16079932).\  
+-   **Tissue**: The tissue the target was detected in. The tissue availability is omics dependent:\  
+    -   Adipose tissue: Transcriptomics.\  
+    -   Blood: Proteomics.\  
+    -   Islets: Transcriptomics.\  
+    -   Islets LCM (laser capture microdissected): Transcriptomics.\  
+    -   Liver: Transcriptomics.\  
+    -   Muscles: Transcriptomics.\  
+-   **Comparison**: Experimental setup or modeling.\  
+-   **log10 fold change**: log10-transformed fold change (FC).\  
+-   **Adj. p-value**: FDR adjusted p-value.\  
 
-Significant results with an adjusted p-value <`r p_value_threshold` are shown in [**blue**]{style="color:#00688B"}, while non-significant points are shown in [**gray**]{style="color:gray"}.\
+Significant results with an adjusted p-value <`r p_value_threshold` are shown in [**blue**]{style="color:#00688B"}, while non-significant points are shown in [**gray**]{style="color:gray"}.\  
 
 ## RHAPSODY meta rank  {.tabset .tabset-fade .tabset-pills}
 
@@ -765,18 +767,18 @@ meta_analysis_table$prep_format[[1]] %>%
 
 ### About {.unnumbered}
 
-The RHAPSODY meta rank is made to identify novel targets based on RHAPSODY experimental data. The rank is based on three steps:\
+The RHAPSODY meta rank is made to identify novel targets based on RHAPSODY experimental data. The rank is based on three steps:\  
 
-1. Meta-analysis of p-values from all transcriptomics and proteomics experiments within the RHAPSODY consortium (see the individual results above). The meta-analysis use the sample size-based meta-analysis described by [Willer et al, 2010](https://pubmed.ncbi.nlm.nih.gov/20616382/). The reported meta p-values are FDR-adjusted.\
-2. Targets were evaluated on being found in the blood circulation using data from the Human Protein Atlas. Targets found in circulation were included in step 3.\
-3. Targets with a significant meta p-value, defined as meta p-value < 0.05, were inversely ranked according to their co-mentions with diabetes. The best rank of 1 was assigned to the lowest number of co-mentions (zero (0) co-mentions), signifying the most novel biomarker for diabetes.\
+1. Meta-analysis of p-values from all transcriptomics and proteomics experiments within the RHAPSODY consortium (see the individual results above). The meta-analysis use the sample size-based meta-analysis described by [Willer et al, 2010](https://doi.org/10.1093/bioinformatics/btq340). The reported meta p-values are FDR-adjusted.\  
+2. Targets were evaluated on being found in the blood circulation using data from the Human Protein Atlas. Targets found in circulation were included in step 3.\  
+3. Targets with a significant meta p-value, defined as meta p-value < 0.05, were inversely ranked according to their co-mentions with diabetes. The best rank of 1 was assigned to the lowest number of co-mentions (zero (0) co-mentions), signifying the most novel biomarker for diabetes.\  
 
 \newline
 Significant results with an adjusted meta p-value <`r p_value_threshold` are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, 
-while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
+while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\  
 
 \newline
-em-dash (---) indicates that no information was available for the target.
+em-dash (---) indicates that no information was available for the target.\  
 
 
 
@@ -1056,31 +1058,31 @@ ranklist_tissue_data %>%
 Comparison of targets across tissues and species. The plot is made to
 enable direct comparison between targets. Dependent on the number of
 targets, the plot will give target comparisons horizontally (at 8 or
-fewer targets) or vertically (more than 8 targets).
+fewer targets) or vertically (more than 8 targets).\  
 
--   Line: Connects the best results (lowest adjusted p-value) from each tissue. \
--   Shape: Points are shaped according to omics type. \
+-   Line: Connects the best results (lowest adjusted p-value) from each tissue. \  
+-   Shape: Points are shaped according to omics type. \  
 -   Color: Points with an adjusted p-value <`r p_value_threshold` are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, 
     while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
 -   Color density: Points with a adjusted p-value <`r p_value_threshold` are shown at full density, 
-    while points above the p-value threshold are more see-through (lower density). \
+    while points above the p-value threshold are more see-through (lower density). \  
 
-Empty plots indicates that the specific target were not measured in RHAPSODY experiments.\
+Empty plots indicates that the specific target were not measured in RHAPSODY experiments.\  
 
 #### Compare across species {.unnumbered}   
 Comparison of tissues across species for each target. The plot is
 made to enable direct comparison between tissues and species for each
-target. \
+target. \  
 
 -   Line: Connects the best results (lowest adjusted p-value) from each
-    tissue.\
--   Shape: Points are shaped according to omics type.\
+    tissue.\  
+-   Shape: Points are shaped according to omics type.\  
 -   Color: Points with an adjusted p-value <`r p_value_threshold` are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, 
     while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
 -   Color density: Points with a adjusted p-value <`r p_value_threshold` are shown at full density, while points above
-    the p-value threshold are more see-through (lower density). \
+    the p-value threshold are more see-through (lower density). \  
 
-Empty plots indicates that the specific target were not measured in RHAPSODY experiments.\
+Empty plots indicates that the specific target were not measured in RHAPSODY experiments.\  
     
 #### Rank list table {.unnumbered}
 The table summarizes the best results for each tissue and species based on adjusted p-value. 
@@ -1159,19 +1161,16 @@ disease_association %>%
 #### About {.unnumbered}
 Text mining results for target-disease (any) association based on in-house and PHAROS data.  
 
--   In-house text-mining \
-    -   UniProt AC - all diseases co-mentions (PubMed): Sum of diabetes
-        and all other diseases co-mentions in PubMed abstracts. \
-    -   UniProt AC - all diseases co-mentions (full-text): Sum of
-        diabetes and all other diseases co-mentions in 15 mio full-text
-        articles. \
+-   In-house text-mining \  
+    -   UniProt AC - all diseases co-mentions (PubMed): Sum of diabetes and all other diseases co-mentions in PubMed abstracts.\  
+    -   UniProt AC - all diseases co-mentions (full-text): Sum of diabetes and all other diseases co-mentions in 15 mio full-text articles.\    
 
--   PHAROS \
+-   PHAROS \  
     -   Jensen Score: Gene-disease association score based on biomedical
         abstracts, taking co-occurrence within and between sentences
         into account. Absolute counts are reported here. For more
         information, see [Pletscher-Frankild et al,
-        2015](https://www.sciencedirect.com/science/article/pii/S1046202314003831).\
+        2015](https://www.sciencedirect.com/science/article/pii/S1046202314003831).\  
     -   PubTator Score: Online tool for curation of PubMed articles.
         Biological entities (chemicals, diseases, genes, mutations, and
         species) are annotated using entity-specific text-mining tools.
@@ -1179,28 +1178,28 @@ Text mining results for target-disease (any) association based on in-house and P
         For more information, see the
         [website](https://www.ncbi.nlm.nih.gov/research/pubtator/index.html)
         and [Wei,
-        2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3692066/).\
+        2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3692066/).\  
 
 \newline
 
 To ease the comparison between the proteins, a geometric mean has been
 calculated for the five parameters. Geometric means can be calculated
 with the formula:
-$GM = \sqrt[n]{x_{1} \cdot x_{2} \cdot ... \cdot x_{n}}$.\
+$GM = \sqrt[n]{x_{1} \cdot x_{2} \cdot ... \cdot x_{n}}$.\  
 Using the geometric mean instead of the arithmetic mean (normally known
 as mean or average) to summarize our data is beneficial for two reasons:
 
 -   The geometric mean is not affected by the scale of the data. We can
-    therefore summarize our data without normalizing it.\
+    therefore summarize our data without normalizing it.\  
 -   The geometric mean is less sensitive to outliers than the
     arithmetic mean, but still more sensitive than the median.\ 
 -   The geometric mean is also more stable than the median, which can change
     dramatically when adding or removing just a few input values if your
-    sample size is small.  \
+    sample size is small.  \  
 
 However, it is important to note that the geometric mean **does not**
 handle zeros and negative values. It is therefore not useful for all
-data types.\
+data types.\  
 
 
 ### Diabetes fraction of co-mentions {.tabset .tabset-fade .tabset-pills}
@@ -1290,22 +1289,22 @@ plot_diabetes_percentage + plot_diabetes_fraction +
 #### About {.unnumbered}
 
 The in-house text-mining has been conducted in two modes for PubMed
-abstracts and full-text papers:\
+abstracts and full-text papers:\  
 
--   UniProt AC - all diseases except diabetes co-mentions\
--   UniProt AC - diabetes co-mentions\
+-   UniProt AC - all diseases except diabetes co-mentions\  
+-   UniProt AC - diabetes co-mentions\  
 
 Using these text-mining results, we can compare the number of
-co-mentions associated with diabetes to all other diseases.\
+co-mentions associated with diabetes to all other diseases.\  
 
-The plot is split into three panel (left-to-right):\
+The plot is split into three panel (left-to-right):\  
 
--   A proportional area plot (left panel) shows the percentage of co-mentions in full text articles that are diabetes-related. \
+-   A proportional area plot (left panel) shows the percentage of co-mentions in full text articles that are diabetes-related. \  
 -   The first bar plot (middle panel) shows the co-mentions count for diabetes in `r text_spec(about_text$text_diabetes_fraction_diabetes, color = about_text$color_diabetes_fraction_diabetes, bold = TRUE)` and the co-mentions count for all diseases *but* diabetes in `r text_spec(about_text$text_diabetes_fraction_allother, color = about_text$color_diabetes_fraction_allother, bold = TRUE)` derived from 15 million full-text articles (in-house resource, see [Westergaard et al. PLoS Computational Biology
-    2018](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005962))\
--   The second bar plot (right panel) shows similar to the middle panel co-mentions count for diabetes in `r text_spec(about_text$text_diabetes_fraction_diabetes, color = about_text$color_diabetes_fraction_diabetes, bold = TRUE)` and the co-mentions count for all diseases *but* diabetes in `r text_spec(about_text$text_diabetes_fraction_allother, color = about_text$color_diabetes_fraction_allother, bold = TRUE)`. The data is obtained from 15 million abstracts (in-house resource, see [Westergaard et al. PLoS Computational Biology 2018](https://doi.org/10.1371/journal.pcbi.1005962))\
+    2018](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005962)).\  
+-   The second bar plot (right panel) shows similar to the middle panel co-mentions count for diabetes in `r text_spec(about_text$text_diabetes_fraction_diabetes, color = about_text$color_diabetes_fraction_diabetes, bold = TRUE)` and the co-mentions count for all diseases *but* diabetes in `r text_spec(about_text$text_diabetes_fraction_allother, color = about_text$color_diabetes_fraction_allother, bold = TRUE)`. The data is obtained from 15 million abstracts (in-house resource, see [Westergaard et al. PLoS Computational Biology 2018](https://doi.org/10.1371/journal.pcbi.1005962)).\  
 
-The plot has been sorted according to highest full-text all diabetes co-mentions.\
+The plot has been sorted according to highest full-text all diabetes co-mentions.\  
 
 
 ## Open Targets association scores {.tabset .tabset-fade .tabset-pills}
@@ -1571,9 +1570,13 @@ other_dm %>%
 Open Targets association scores for the diabetes mellitus supergroup and selected subtypes.\ 
 
 -   **Diabetes mellitus (EFO_0000400)**: Supergroup for all diabetes mellitus diseases.\ 
+
 -   **T2DM (MONDO_0005148)**: Type 2 diabetes mellitus.\ 
+
 -   **T1DM (MONDO_0005147)**: Type 1 diabetes mellitus.\ 
+
 -   **GDM (EFO_0004593)**: Gestational diabetes mellitus.\  
+
 -   **Other diabetes mellitus subtypes**: Any other diabetes mellitus subgroup than T2DM, T1DM and GDM, e.g., monogenic diabetes mellitus, prediabetes syndrome, and neonatal diabetes mellitus.\  
 
 \newline
@@ -2130,7 +2133,7 @@ run_through_ppi <- run_WGR_ppi %>%
   pull(database_formatted_name)
 ```
 
-Over-represented terms were found for:  
+Han Over-represented terms were found for:  
 
 `r run_through_ppi[order(run_through_ppi)]`
 
@@ -2604,8 +2607,6 @@ drug_interactions_table %>%
 # Save table as excel-file
 drug_interactions_data %>%
   write_xlsx(path = str_c(rand_num,"/tables/table10_drug_interactions.xlsx"))
-
-
 ```
 
 
@@ -2614,9 +2615,6 @@ drug_interactions_data %>%
 Table of target-drug interactions from DrugBank: \  
 
 -   **ATC codes**: Associated ATC code(s). For further information on the ATC system, see the WHO Collaborating Centre for Drug Statistics' [website](https://www.whocc.no/atc_ddd_index/).\   
-    Colored by anatomical main group using color scheme from [Aguayo-Orozco, A., Haue, A.D., Jørgensen, I.F. et al. npj Digit 2021](https://doi.org/10.1038/s41746-021-00522-4)  
-
-[image](report_input/ATC colors - legend figure.001.jpeg)
 
 -   **Drug groups**: Drugs are categorized by group determined by their drug development status.:\  
     -   Approved: A drug that has been approved in at least one jurisdiction, at some point in time. 
@@ -2642,8 +2640,8 @@ Table of target-drug interactions from DrugBank: \
     -   No: A interaction is marked as 'No' if the interaction between target and drug is not directly involved in the drug's mechanism of action.\  
     -   Unknown: A interaction is marked as 'Unknown' if currently there is no formal research or evidence to elucidate 
         whether interaction between the target and drug is associated with the drug's mechanism of action at all.\  
-    Colored according to action using color scheme from DrugBank.\
-
+    Colored according to action using color scheme from DrugBank.\   
+    
 -   **Evidence for interaction**: Link to the target-drug interaction information on the DrugBank website with references to primary literature on the interaction.\  
 
 \newline   
@@ -2776,7 +2774,47 @@ It incorporates experimental RHAPSODY data, public data from multiple databases,
 ## Technical information {.unnumbered}
 
 ```{r databaseversion}
+matrix_version_info <- biomarker_list %>% 
+  select(ends_with("release"), ends_with("download"), ends_with("version")) %>% 
+  distinct_all()
 
+drugbank_version_info <-drugbank_data %>% 
+  select(ends_with("release"), ends_with("download"), ends_with("version")) %>% 
+  distinct_all()
+
+version_info_table <- full_join(matrix_version_info, drugbank_version_info, by = character()) %>% 
+  mutate(across(everything(), as.character)) %>% 
+  pivot_longer(names_to = "names",
+               values_to = "value",
+               cols = everything()) %>% 
+  mutate(database = str_extract(names, "^[[:alpha:]]{1,}"),
+         entry_type = str_remove(names, str_c(database, "_"))) %>% 
+  select(-names) %>% 
+  pivot_wider(names_from = entry_type, 
+              values_from = value) %>% 
+  mutate(across(c(version_release, version_download), lubridate::as_date),
+         database = recode(database, 
+                           drugbank = "DrugBank",
+                           hpa = "HPA", 
+                           opentargets = "Open Targets",
+                           pharos = "PHAROS",
+                           uniprot = "UniProt"
+                           )
+         ) %>% 
+  select(Database = database, 
+         Version = version, 
+         `Version release date` = version_release,
+         `Download date` = version_download) %>% 
+  arrange(Database) %>% 
+  kable(escape = FALSE,
+        caption = "Database version information",
+        align = "lrrr"
+        ) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+version_info_table %>%
+    scroll_box(width = "100%", height = table_sizes$h_table_small_meta)
+    
 ```
 
 

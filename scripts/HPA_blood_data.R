@@ -7,14 +7,6 @@ data_dir <- here::here("data/HPA_blood_proteins/")
 uniprot_map <- read_tsv(here::here("data/prepped_data/uniprot_mapping_file_mousehuman.tsv")) %>%
   distinct(uniprot, ensembl)
 
-# download
-hpa_link <- "https://www.proteinatlas.org/download/proteinatlas.tsv.zip" 
-hpa_dest <- str_c(data_dir, "proteinatlas.tsv.zip")
-
-download.file(hpa_link, destfile = hpa_dest)
-unzip(hpa_dest, exdir = data_dir)
-
-
 # Prepare data
 hpa_file <- read_tsv(str_c(data_dir, "proteinatlas.tsv"))
 

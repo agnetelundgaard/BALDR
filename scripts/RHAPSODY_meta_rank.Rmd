@@ -1,7 +1,7 @@
 ---
 title: "METAL meta-analysis"
 author: "Agnete Troen Lundgaard"
-date: "13. December 2021"
+date: "8. August 2022"
 output: html_document
 ---
 
@@ -38,11 +38,13 @@ data_dir <- here::here("data/")
 
 rhapsody_data <- read_tsv(str_c(data_dir, "prepped_data/", "data_BCDP_rhapsody_prepped.tsv"))
 
-n_studies_file <- read_tsv(str_c(data_dir, "RHAPSODY metadata - Comparisons website.tsv"))
+n_studies_file <- read_tsv(str_c(data_dir, "RHAPSODY_data/", "RHAPSODY metadata - Comparisons website.tsv"))
 
 hpa_blood_file <- read_tsv(str_c(data_dir, "HPA_blood_proteins/", "hpa_proteins_in_blood.tsv"))
 
 biomarker_matrix_file <- read_tsv(str_c(data_dir, "prepped_data/", "biomarker_list_prepped.tsv"))
+
+text_mining_file <- read_tsv(str_c(data_dir, "prepped_data/", "textmining_results_prepped.tsv"))
 ```
 
 
@@ -54,12 +56,8 @@ n_studies <- n_studies_file %>%
   mutate(effective_sample_size = round(4/(1/number_samples_a + 1/number_samples_b), 1)) %>% 
   select(experiment_name, effective_sample_size)
 
-text_mining <- biomarker_matrix_file %>% 
+text_mining <- text_mining_file %>% 
   distinct(uniprotkb_id, fulltext_diabetes)
-
-opentargets_association_score <- biomarker_matrix_file %>% 
-  distinct(uniprotkb_id, association_score_overall) %>% 
-  mutate(association_score_overall_percentile = ntile(association_score_overall, 100))
 
 hpa_blood <- hpa_blood_file
 
@@ -69,7 +67,7 @@ data <- left_join(rhapsody_data, n_studies)  %>%
   left_join(., hpa_blood)
 
 data_nested <- data %>% 
-  group_by(uniprotkb_id, uniprot, gene_name, fulltext_diabetes, found_in_blood) %>% 
+  group_by(uniprotkb_id, uniprot, fulltext_diabetes, found_in_blood) %>% 
   nest() %>%
   mutate(data = map(data, ~.x %>% distinct(experiment_name, p_value, adj_p_val, log_fc, effective_sample_size))) %>% 
   ungroup()
@@ -120,17 +118,8 @@ rank <- meta_pvalues_fdr_adjust %>%
   tidylog::filter(meta_p_adjust < 0.05) %>% 
   tidylog::filter(found_in_blood == TRUE) %>%
   mutate(rank = dense_rank(fulltext_diabetes)) 
-
 ```
 
-Save ranks
-```{r}
-rank %>% 
-  select(-c(data, meta_p)) %>% 
-  left_join(opentargets_association_score) %>%
-  arrange(rank) #%>% 
-  #write_tsv("RHAPSODY_rank_metaanalysis_fulltextdiabetes.tsv")
-```
 
 Save ranks + meta p-value for all targets
 ```{r}
@@ -138,8 +127,8 @@ meta_pvalues_fdr_adjust %>%
   left_join(., rank) %>% 
   select(-c(data, meta_p, fulltext_diabetes)) %>% 
   arrange(rank) %>%
-  full_join(., biomarker_list %>% distinct(uniprot, uniprotkb_id, gene_name) %>% left_join(hpa_blood)) %>% 
+  full_join(., biomarker_matrix_file %>% distinct(uniprot, uniprotkb_id) %>% left_join(hpa_blood)) %>% 
   mutate(found_in_blood = ifelse(is.na(found_in_blood), FALSE, found_in_blood)) %>% 
-  write_tsv(str_c(data_dir, "prepped_data/", "RHAPSODY_rank_metaanalysis_all.tsv"))
+  write_tsv(str_c(data_dir, "RHAPSODY_data/", "RHAPSODY_rank_metaanalysis_all.tsv"))
 ```
 

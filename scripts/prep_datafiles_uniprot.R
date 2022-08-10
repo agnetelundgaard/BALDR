@@ -87,7 +87,7 @@ humanmouse_mapping %>%
 
 # ~~ Reference data ----
 # 10,946 commonIDs not mapping. ENSMUS and ENSG IDs 
-ref_exp_file <- read_csv(str_c(data_dir, "/data_BCDP_rhapsody.csv"), col_types = cols(More.info.on.statistical.test = col_character(),
+ref_exp_file <- read_csv(str_c(data_dir, "RHAPSODY_data/", "data_BCDP_rhapsody.csv"), col_types = cols(More.info.on.statistical.test = col_character(),
                                                                                       NumberAnalytes = col_double())) 
 common_id_mapping <- ref_exp_file %>%
   clean_names() %>% 
@@ -112,8 +112,8 @@ ref_exp_file_mapped <- ref_exp_file %>%
 ref_exp_file_mapped %>% 
   write_tsv(str_c(data_dir, "prepped_data/", "/data_BCDP_rhapsody_prepped.tsv"))
 
-# ~~ Experimental properties
-load(str_c(data_dir, "experimentPropertiesDFwide.RData"))
+# ~~ Experimental properties ----
+load(str_c(data_dir, "RHAPSODY_data/", "experimentPropertiesDFwide.RData"))
 
 experimentPropertiesDFwide_prepped <- experimentPropertiesDFwide %>% 
   as_tibble() %>% 
@@ -122,10 +122,16 @@ experimentPropertiesDFwide_prepped <- experimentPropertiesDFwide %>%
 experimentPropertiesDFwide_prepped %>% 
   write_tsv(str_c(data_dir, "prepped_data/", "experimentPropertiesDFwide_prepped.tsv"))
 
+# ~~ Meta analysis ----
+rhapsody_meta <- read_tsv(str_c(data_dir, "RHAPSODY_data/", "RHAPSODY_rank_metaanalysis_all.tsv"))
+
+rhapsody_meta %>% 
+  write_tsv(str_c(data_dir, "prepped_data/", "RHAPSODY_rank_metaanalysis_all.tsv"))
+
 # ~ PPI data ----
 # ~~ Intomics ----
 # 1 Uniprot NA removed. 10 UniProt IDs without gene names kept.
-ppi_data_file <- read_tsv(str_c(data_dir, "core.psimitab"),
+ppi_data_file <- read_tsv(str_c(data_dir, "ppi_data/", "core.psimitab"),
                           col_names = c("A", "B", "altA", "altB", "aliasA", "aliasB", "detectionMethod", "firstAuthor", "pubID", "taxonA", "taxonB", "interactionType", "sourceDatabases", "interactionID", "confidence_score", "provider"))
 
 ppi_data_prep <- ppi_data_file %>% 
@@ -153,10 +159,10 @@ ppi_data_prep <- ppi_data_file %>%
          )) 
 
 ppi_data_prep %>% 
-  saveRDS(str_c(data_dir, "prepped_data/", "ppi_data_prepped.Rds"))
+  saveRDS(str_c(data_dir, "prepped_data/", "intomics_ppi_data_prepped.Rds"))
 
 # ~~ STRING DB ----
-string_db <- read_delim(str_c(data_dir, "9606.protein.physical.links.detailed.v11.5.txt"), delim = " ") %>% 
+string_db <- read_delim(str_c(data_dir, "ppi_data/", "9606.protein.physical.links.detailed.v11.5.txt"), delim = " ") %>% 
   nest(ppi_data = everything()) %>% 
   bind_cols(.,  human_mapping %>% nest(mapping_data = everything())) %>% 
   mutate(ppi_data_mapped = map2(ppi_data, mapping_data, ~.x %>% 
@@ -200,7 +206,7 @@ string_db %>%
 # ~ Biomarker matrix and known biomarkers ----
 
 # ~~ Text mining data from old matrix ----
-load(str_c(data_dir, "all_data_prioritization_report.RData"))
+load(str_c(data_dir, "textmining_data/", "all_data_prioritization_report.RData"))
 
 text_mining_prepped <- biomarker_list %>% 
   clean_names() %>% 
@@ -219,7 +225,7 @@ text_mining_prepped %>%
   write_tsv(str_c(data_dir, "prepped_data/", "textmining_results_prepped.tsv"))
 
 # ~~ Biomarker matrix ---- 
-biomarker_list <- read_tsv(str_c(data_dir, "2022-07-11-baldr_matrix.tsv")) 
+biomarker_list <- read_tsv(str_c(data_dir, "biomarker_matrix/", "2022-08-05-corrected_baldr_matrix.tsv")) 
 
 biomarker_list_prepped <- biomarker_list %>% 
   rename(uniprotkb_id = uniprot_entry_name, 
@@ -254,11 +260,9 @@ biomarker_list_prepped %>%
 #   write_tsv(str_c(data_dir,"biomarker_list_prepped_Danai.tsv"))
 
 
-
-
 # ~~ Known biomarkers ----
 # The list is using updated versions of UniProt IDs
-known_biomarkers_list <- read_xlsx(str_c(data_dir, "BMKTF_Rhapsody_full_table_for_Karla_080317.xlsx"))
+known_biomarkers_list <- read_xlsx(str_c(data_dir, "known_biomarkers/", "BMKTF_Rhapsody_full_table_for_Karla_080317.xlsx"))
 
 known_biomarkers_list_prepped <- known_biomarkers_list %>% 
   clean_names() %>% 
@@ -280,10 +284,11 @@ known_biomarkers_list_prepped %>%
 
 
 # ~~ DrugBank ----
-drugbank_data <- read_tsv(str_c(data_dir, "2022-08-01-drugbank_protein_interactions.tsv"))
+drugbank_data <- read_tsv(str_c(data_dir, "drugbank_data/", "2022-08-02-drugbank_protein_interactions.tsv"))
 
 drugbank_prepped <- drugbank_data %>% 
-  select(uniprot = target_uniprot, drug_name, drug_drugbank_id, drug_groups, target_type, pharmacological_action, drug_url, interaction_url)
+  rename(uniprot = target_uniprot) %>% 
+  select(-c(node_index, i))
 
 drugbank_prepped %>% 
   write_tsv(str_c(data_dir, "prepped_data/", "drugbank_data_prepped.tsv"))
