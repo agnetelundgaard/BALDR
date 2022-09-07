@@ -1,6 +1,6 @@
 ---
 title: "BALDR: Biomarker AnaLysis for Diabetes Research"
-date: "Version 0.7, August 2022"
+date: "Version 0.7"
 output: 
   html_document: 
     theme: "journal"
@@ -274,8 +274,8 @@ species_vector <- my_hits_exp %>% distinct(species) %>% filter(!is.na(species)) 
 table_sizes <- list(
   h_table_large_exp = if_else(num_targets_exp <= 8, str_c(num_targets_exp * 50 + 200, "px"), str_c(850, "px")),
   h_table_large_total = if_else(num_targets_total <= 8, str_c(num_targets_total * 40 + 330, "px"), str_c(650, "px")),
-  h_table_small_interpartners = if_else(num_targets_total <= 30, str_c(num_targets_total * 20 + 250, "px"), str_c(650, "px")),
-  h_table_small_meta = if_else(num_targets_total <= 30, str_c(num_targets_total * 10 + 200, "px"), str_c(500, "px"))
+  # h_table_small_interpartners = if_else(num_targets_total <= 30, str_c(num_targets_total * 20 + 250, "px"), str_c(650, "px")),
+  h_table_small = if_else(num_targets_total <= 30, str_c(num_targets_total * 15 + 200, "px"), str_c(500, "px"))
 
 )
 
@@ -739,7 +739,7 @@ meta_analysis_table <- my_hits_bmk %>%
          )  
 
 meta_analysis_table$kbl_table[[1]] %>%
-  scroll_box(height = table_sizes$h_table_small_meta,
+  scroll_box(height = table_sizes$h_table_small,
              width = "100%"
              )
 ```
@@ -1924,7 +1924,7 @@ ppi_graph$graph[[1]]
 ```{r PPI-overview-table, eval = TRUE}
 # Show table with scrollbox
 ppi_sum_table$kbl_table[[1]] %>%
-  scroll_box(width = "100%", height = table_sizes$h_table_small_interpartners)
+  scroll_box(width = "100%", height = table_sizes$h_table_small)
 ```
 
 
@@ -2586,7 +2586,17 @@ drug_interactions_table <- drug_interactions_table_prep %>%
 
 # Show table with scrollbox
 drug_interactions_table %>%
-  scroll_box(width = "100%", height = table_sizes$h_table_large_total)
+  scroll_box(width = "100%", 
+             # height = ifelse(nrow(drug_interactions_table_prep) + num_targets_total > 18,
+             #                 str_c(600, "px"), 
+             #                 str_c((nrow(drug_interactions_table_prep) + num_targets_total)*25 + 160, "px")
+             #                 )
+             height = ifelse(nrow(drug_interactions_table_prep) + num_targets_total > 30,
+                             str_c(500, "px"),
+                             str_c((nrow(drug_interactions_table_prep) + num_targets_total)*15 + 200, "px")
+                             )
+               )
+
 ```
 
 ```{r drug-interactions-local, eval = run_locally}
@@ -2813,7 +2823,7 @@ version_info_table <- full_join(matrix_version_info, drugbank_version_info, by =
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 
 version_info_table %>%
-    scroll_box(width = "100%", height = table_sizes$h_table_small_meta)
+    scroll_box(width = "100%", height = table_sizes$h_table_small)
     
 ```
 
