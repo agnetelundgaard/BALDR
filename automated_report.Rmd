@@ -46,11 +46,9 @@ if(run_type == "local"){
 args <- commandArgs(trailingOnly=TRUE)
 n_args <- length(args)
 rand_num <- args[1]
-
-rmarkdown::find_pandoc(version = '2.2.1') 
 ```
 
-```{r chunk setup, include= FALSE, eval = TRUE}
+```{r chunk setup - local, include = FALSE, eval = TRUE, eval = run_locally}
 knitr::opts_chunk$set(warning = FALSE, 
                       message = FALSE,
                       error = TRUE,
@@ -59,46 +57,28 @@ knitr::opts_chunk$set(warning = FALSE,
                       fig.width = 10,
                       fig.retina = 3,
                       fig.path = "plots/",
-                      dev = c("png", "cairo_pdf"), #png option *HAS* to be first, otherwise the html-doc will render without figures. cairo_pdf is used render with unicode symbols.
+                      dev = c("png", "cairo_pdf"), 
                       optipng = "-o7"
                       )
 
 options(knitr.table.format = "html") 
 ```
 
-```{r local_pathes, results = 'hide', eval = run_on_server, echo = FALSE}
-# To uncomment when back on server
-# set the local pathes
-const_data_path <- "/home/local/rhapsody/web_structure/data/biomarkers_1/dataset_1/"
-rdata_file_1 <- paste0(params$rdata_file, '_1.RData')
-rdata_file_2 <- paste0(params$rdata_file, '_2.RData')
-load(paste0(const_data_path, "all_data_prioritization_report.RData"))
-# Load the R objects
-load(rdata_file_1)
-load(rdata_file_2)
+```{r chunk setup - server, include = FALSE, eval = TRUE, eval = run_on_server}
+knitr::opts_chunk$set(warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE,
+                      echo = FALSE,
+                      fig.align = "center", 
+                      fig.width = 10,
+                      fig.retina = 3,
+                      fig.path = paste(rand_num,"/plots/", sep=""), # Troels edit
+                      dev = c("png", "cairo_pdf"), 
+                      optipng = "-o7"
+                      )
+
+options(knitr.table.format = "html") 
 ```
-
-<!-- # The formalities {.unnumbered .tabset .tabset-fade .tabset-pills} -->
-
-<!-- ## Rights and permissions {.unnumbered} -->
-
-<!-- **Code ownership**: This report was written by Agnete Troen Lundgaard with supervision by Karina Banasik and Søren Brunak ("authors") of the Novo Nordisk Foundation Center for Protein Research.\   -->
-<!-- \newline -->
-
-<!-- **Funding**: This work has been funded by the IMI-RHAPSODY project (Grant agreement 115881) and the Novo Nordisk Foundation (Grant agreement NNF14CC0001) -->
-
-<!-- **How to cite**: Please cite our paper\   -->
-
-<!-- Informed prioritization of biomarker candidates for Type 2 Diabetes Mellitus using BALDR -->
-<!-- *Agnete T. Lundgaard, Frederic Burdet, Troels Siggaard, David Westergaard, Danai Vagiaki, Lisa Cantwell, Timo Röder, Dorte Vistisen, Thomas Sparsø, Giuseppe N. Giordano, Mark Ibberson, Karina Banasik, Søren Brunak*\   -->
-<!-- Submitted 2022 -->
-
-<!-- \newline -->
-
-<!-- ## Contact information {.unnumbered} -->
-
-<!-- If you have any questions regarding the report, please contact us on [agnete.lundgaard\@cpr.ku.dk](mailto:agnete.lundgaard@cpr.ku.dk) or  -->
-<!-- [karina.banasik\@cpr.ku.dk](mailto:karina.banasik@cpr.ku.dk).\ -->
 
 
 ```{r load packages, results = 'hide'}
@@ -144,7 +124,7 @@ source(here::here("report_input", "custom_settings.R")) # Local setting
 ```{r User-defined settings - server, results = 'hide', echo = FALSE, eval = run_on_server}
 # Local directory containing code/data
 data_dir <- here::here("data/")
-source(here::here("custom_settings.R")) # Troels' setting
+source(here::here("report_input", "custom_settings.R"))
 ```
 
 
@@ -183,6 +163,13 @@ my_list <- scan(str_c(data_dir, "example_data/", "RHAPSODY_candidates_uniprot.cs
 #   as_tibble() %>%
 #   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
 #   distinct(uniprot)
+
+# Error on meta rank 
+# my_list <- scan(str_c(data_dir, "example_data/", "report_error.csv"), sep=',', what = "", quiet = TRUE) %>%
+#   as_tibble() %>%
+#   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
+#   distinct(uniprot)
+
 ```
 
 ```{r load candidate list - server, results = 'hide', echo = FALSE, eval = run_on_server}
@@ -211,7 +198,8 @@ ref_exp <- ref_exp_file %>%
          omics_type = omics,
          experiment_PI = source) %>% 
   mutate(threshold = as.factor(p_value < p_value_threshold),
-         omics_type = factor(omics_type, c("Transcriptomics", "Proteomics")))
+         # omics_type = factor(omics_type, c("Transcriptomics", "Proteomics"))
+         )
 
 
 # Merge with key proteins and experiment properties
@@ -232,7 +220,9 @@ my_hits_exp <- my_protein_list %>%
   mutate(numhits_threshold = numhits_threshold) %>% 
   filter(if_else(numhits_threshold >= min_num_hits, threshold == TRUE, TRUE)) %>% 
   select(target, uniprot, p_value, effect, omics_type, everything()) %>% 
-  mutate(omics_type = factor(omics_type, c("Transcriptomics", "Proteomics")))
+  mutate(omics_type = as.character(omics_type),
+         ) %>% 
+  filter(!is.na(experiment_name))
 
 my_hits_bmk <- my_protein_list %>% 
   mutate(numhits_threshold = numhits_threshold) %>% 
@@ -470,7 +460,7 @@ descriptions_data %>%
 
 ### About {.unnumbered}
 
-Table content:\  
+Table content: \  
 
 -   **Description (PHAROS)**: Full-text description of the role/function of the protein from PHAROS.\  
 
@@ -506,17 +496,17 @@ volcano_significant_all %>%
              size = 2) + 
   scale_color_manual(breaks = c("TRUE", "FALSE"),
                      values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
   scale_alpha_manual(breaks = c("TRUE", "FALSE"),
                      values = c(0.8, 0.5),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
-  scale_shape_manual(breaks = c("Transcriptomics", "Proteomics"),
+  scale_shape_manual(breaks = c("Proteomics", "Transcriptomics"),
                      values = c("circle", "square"),
                      guide = guide_legend(override.aes = list(color = "gray", size = 3),
                                           )) +
@@ -577,15 +567,15 @@ volcano_significant %>%
                   size = 3) +
   scale_color_manual(breaks = c("TRUE", "FALSE"),
                      values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
-  scale_shape_manual(breaks = c("Transcriptomics", "Proteomics"),
+  scale_shape_manual(breaks = c("Proteomics", "Transcriptomics"),
                      values = c("circle", "square"),
                      guide = guide_legend(override.aes = list(color = figure_colors$omics_legend_overwrite, size = 3))
                      ) +
-  facet_wrap(~factor(omics_type, c("Transcriptomics", "Proteomics")), 
+  facet_wrap(~factor(omics_type, c("Proteomics", "Transcriptomics")), 
              scales = "free", 
              ncol = 2) +
   theme(legend.position = "top",
@@ -630,7 +620,7 @@ ranklist_omics_table <- ranklist_omics_data %>%
         escape = FALSE, 
         caption = "Best experimental results for each target by omics-type") %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
-  pack_rows(index = ranklist_omics_data %>% pull(`Omics type`) %>% table())
+  pack_rows(index = ranklist_omics_data  %>% pull(`Omics type`) %>% table())
 
 # Show table with scrollbox
 ranklist_omics_table  %>%
@@ -769,7 +759,7 @@ meta_analysis_table$prep_format[[1]] %>%
 
 The RHAPSODY meta rank is made to identify novel targets based on RHAPSODY experimental data. The rank is based on three steps:\  
 
-1. Meta-analysis of p-values from all transcriptomics and proteomics experiments within the RHAPSODY consortium (see the individual results above). The meta-analysis use the sample size-based meta-analysis described by [Willer et al, 2010](https://doi.org/10.1093/bioinformatics/btq340). The reported meta p-values are FDR-adjusted.\  
+1. Meta-analysis of p-values from all proteomics and transcriptomics experiments within the RHAPSODY consortium (see the individual results above). The meta-analysis use the sample size-based meta-analysis described by [Willer et al, 2010](https://doi.org/10.1093/bioinformatics/btq340). The reported meta p-values are FDR-adjusted.\  
 2. Targets were evaluated on being found in the blood circulation using data from the Human Protein Atlas. Targets found in circulation were included in step 3.\  
 3. Targets with a significant meta p-value, defined as meta p-value < 0.05, were inversely ranked according to their co-mentions with diabetes. The best rank of 1 was assigned to the lowest number of co-mentions (zero (0) co-mentions), signifying the most novel biomarker for diabetes.\  
 
@@ -806,17 +796,17 @@ if (num_targets_total <= 8){
                  size = 2) +
       scale_color_manual(breaks = c("TRUE", "FALSE"),
                        values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                       labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                       labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                        drop = FALSE,
                        guide = guide_legend(override.aes = list(shape = "square", size = 5))
                        ) +
       scale_alpha_manual(breaks = c("TRUE", "FALSE"),
                        values = c(0.8, 0.5),
-                       labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                       labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                        drop = FALSE,
                        guide = guide_legend(override.aes = list(shape = "square", size = 5))
                        ) +
-      scale_shape_manual(breaks = c("Transcriptomics", "Proteomics"),
+      scale_shape_manual(breaks = c("Proteomics", "Transcriptomics"),
                          values = c("circle", "square"),
                          guide = guide_legend(override.aes = list(color = figure_colors$omics_legend_overwrite, size = 3))) +
       facet_grid(species~target, scales = "free_y") +
@@ -850,17 +840,17 @@ if (num_targets_total <= 8){
                  size = 2)  +
       scale_color_manual(breaks = c("TRUE", "FALSE"),
                      values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
       scale_alpha_manual(breaks = c("TRUE", "FALSE"),
                      values = c(0.8, 0.5),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
-      scale_shape_manual(breaks = c("Transcriptomics", "Proteomics"),
+      scale_shape_manual(breaks = c("Proteomics", "Transcriptomics"),
                          values = c("circle", "square"),
                          guide = guide_legend(override.aes = list(color = figure_colors$omics_legend_overwrite, size = 3))) +
       facet_grid(target~species) +
@@ -899,17 +889,17 @@ my_hits_exp %>%
              size = 2)  +
   scale_color_manual(breaks = c("TRUE", "FALSE"),
                      values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
   scale_alpha_manual(breaks = c("TRUE", "FALSE"),
                      values = c(0.8, 0.5),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
-  scale_shape_manual(breaks = c("Transcriptomics", "Proteomics"),
+  scale_shape_manual(breaks = c("Proteomics", "Transcriptomics"),
                      values = c("circle", "square"),
                      guide = guide_legend(override.aes = list(color = figure_colors$omics_legend_overwrite, size = 3))
                      ) +
@@ -1827,66 +1817,88 @@ ppi_sum_table <- ppi_table %>%
 
 ```
 
+
 ```{r interaction_partner_table, eval = TRUE}
 interaction_partner_table <- ppi_table %>% 
-  mutate(prep_format = map(table, ~.x %>% 
-                             filter(!is.na(interact_name)) %>% 
-                             mutate(combined_score = formatC(round(combined_score, 2), format = "f", digits = 2),
-                                    database_score = formatC(round(database_score, 2), format = "f", digits = 2),
-                                    textmining_score = formatC(round(textmining_score, 2), format = "f", digits = 2),
-                                    experimental_score = formatC(round(experimental_score, 2), format = "f", digits = 2),
-                                    diabetes_perc = formatC(round(diabetes_perc, 0), format = "f", digits = 0) %>% as.numeric()) %>%
-                             arrange(myhit_name, 
-                                     desc(diabetes_perc),
-                                     desc(as.numeric(combined_score))) %>% 
-                             mutate(diabetes_perc = ifelse(diabetes_perc == -1, 0, diabetes_perc),
-                                    diabetes_perc = as.numeric(diabetes_perc)) %>%
-                             mutate(across(-c(diabetes_perc), str_replace_na),
-                                    across(-c(diabetes_perc), ~str_replace(.,"^NA$|^NaN$|^-$", "\\—"))) %>% 
-                             select(
-                               `Target` = myhit_name,
-                               `Interaction partner` = interact_name, 
-                               `UniProt ID` = interact_uniprot, 
-                               `Diabetes textmining %` = diabetes_perc, 
-                               `Diabetes associations` = opentargets_assoc_label, 
-                               `Suggested diabetes biomarker` = suggested_biomarker,
-                               `Experimental score` = experimental_score,
-                               `Database score` = database_score,
-                               `Textmining score` = textmining_score,
-                               `Combined score` = combined_score
-                             ) %>% 
-                             left_join(., .x %>% select(Target = myhit_name, `Interaction partner` = interact_name, confint_cutoff)) %>%
-                             distinct_all()
-                           ),
-         prep_style = map2(prep_format, table, ~.x %>% 
-                             mutate(., 
-                                    `Interaction partner` = cell_spec(`Interaction partner`, 
-                                                                      color = ifelse(confint_cutoff == TRUE, table_colors$text_p_treshold_true,
-                                                                                     table_colors$text_p_treshold_false),
-                                                                      bold = ifelse(confint_cutoff == TRUE, TRUE, FALSE)),
-                                    `UniProt ID` = cell_spec(`UniProt ID`, "html", 
-                                                            link = str_c("https://www.uniprot.org/uniprot/", `UniProt ID`)),
-                                    `Diabetes textmining %` = ifelse(confint_cutoff == TRUE,
-                                                                     color_bar(color = table_colors$color_bar_p_threshold_true)(`Diabetes textmining %`),  
-                                                                     color_bar(color = table_colors$color_bar_p_threshold_false)(`Diabetes textmining %`)), 
-                                    `Diabetes textmining %` = ifelse(str_detect(`Diabetes textmining %`, "width: 0.00%"),
-                                                          "—",
-                                                          `Diabetes textmining %`),
-                                    `Suggested diabetes biomarker` = ifelse(`Suggested diabetes biomarker` != "No", 
-                                                                cell_spec(`Suggested diabetes biomarker`, 
-                                                                          background = "darkred", 
-                                                                          color = "white"), 
-                                                                cell_spec(`Suggested diabetes biomarker`, 
-                                                                          background = "darkgray", 
-                                                                          color = "white")),
-                                    across(c(`Experimental score`, `Database score`, `Textmining score`),
-                                           ~color_tile(table_colors$color_bar_p_threshold_false, table_colors$color_bar_p_threshold_true)(.)
-                                           ),
-                                    `Combined score` = ifelse(`Combined score` > 0.7, 
-                                                              cell_spec(`Combined score`, background = table_colors$text_p_treshold_true, color = "white", bold = TRUE),
-                                                              cell_spec(`Combined score`, background = "darkgray", color = "white")
-                                    
-                                   ))),
+  mutate(n_edges = map_dbl(edges_all, nrow)) %>% 
+  mutate(prep_format = ifelse(n_edges != 0,
+                              map(table, ~.x %>% 
+                                    filter(!is.na(interact_name)) %>% 
+                                    mutate(combined_score = formatC(round(combined_score, 2), format = "f", digits = 2),
+                                           database_score = formatC(round(database_score, 2), format = "f", digits = 2),
+                                           textmining_score = formatC(round(textmining_score, 2), format = "f", digits = 2),
+                                           experimental_score = formatC(round(experimental_score, 2), format = "f", digits = 2),
+                                           diabetes_perc = formatC(round(diabetes_perc, 0), format = "f", digits = 0) %>% as.numeric()) %>%
+                                    arrange(myhit_name, 
+                                            desc(diabetes_perc),
+                                            desc(as.numeric(combined_score))) %>% 
+                                    mutate(diabetes_perc = ifelse(diabetes_perc == -1, 0, diabetes_perc),
+                                           diabetes_perc = as.numeric(diabetes_perc)) %>%
+                                    mutate(across(-c(diabetes_perc), str_replace_na),
+                                           across(-c(diabetes_perc), ~str_replace(.,"^NA$|^NaN$|^-$", "\\—"))) %>% 
+                                    select(
+                                      `Target` = myhit_name,
+                                      `Interaction partner` = interact_name, 
+                                      `UniProt ID` = interact_uniprot, 
+                                      `Diabetes textmining %` = diabetes_perc, 
+                                      `Diabetes associations` = opentargets_assoc_label, 
+                                      `Suggested diabetes biomarker` = suggested_biomarker,
+                                      `Experimental score` = experimental_score,
+                                      `Database score` = database_score,
+                                      `Textmining score` = textmining_score,
+                                      `Combined score` = combined_score
+                                      ) %>% 
+                                    left_join(., .x %>% select(Target = myhit_name, `Interaction partner` = interact_name, confint_cutoff)) %>%
+                                    distinct_all()
+                                  ),
+                              map(table, ~.x %>%
+                                    select(
+                                      `Target` = myhit_name,
+                                      `Interaction partner` = interact_name, 
+                                      `UniProt ID` = interact_uniprot, 
+                                      `Diabetes textmining %` = diabetes_perc, 
+                                      `Diabetes associations` = opentargets_assoc_label, 
+                                      `Suggested diabetes biomarker` = suggested_biomarker,
+                                      `Experimental score` = experimental_score,
+                                      `Database score` = database_score,
+                                      `Textmining score` = textmining_score,
+                                      `Combined score` = combined_score
+                                      ) %>% 
+                                    mutate(across(-c(Target), ~str_replace_na(.) %>% str_replace(".{1,}", "\\—")),
+                                           confint_cutoff = 1
+                                           )
+                                  )
+                              ),
+         prep_style = ifelse(n_edges == 0,
+                             map(prep_format,  ~.x),
+                             map2(prep_format, table, ~.x %>% 
+                                    mutate(., 
+                                           `Interaction partner` = cell_spec(`Interaction partner`, 
+                                                                             color = ifelse(confint_cutoff == TRUE, table_colors$text_p_treshold_true,
+                                                                                            table_colors$text_p_treshold_false),
+                                                                             bold = ifelse(confint_cutoff == TRUE, TRUE, FALSE)),
+                                           `UniProt ID` = cell_spec(`UniProt ID`, "html", 
+                                                                    link = str_c("https://www.uniprot.org/uniprot/", `UniProt ID`)),
+                                           `Diabetes textmining %` = ifelse(confint_cutoff == TRUE,
+                                                                            color_bar(color = table_colors$color_bar_p_threshold_true)(`Diabetes textmining %`),
+                                                                            color_bar(color = table_colors$color_bar_p_threshold_false)(`Diabetes textmining %`)), 
+                                           `Diabetes textmining %` = ifelse(str_detect(`Diabetes textmining %`, "width: 0.00%"),
+                                                                            "—",
+                                                                            `Diabetes textmining %`),
+                                           `Suggested diabetes biomarker` = ifelse(`Suggested diabetes biomarker` != "No", 
+                                                                                   cell_spec(`Suggested diabetes biomarker`, 
+                                                                                             background = "darkred", 
+                                                                                             color = "white"), 
+                                                                                   cell_spec(`Suggested diabetes biomarker`, 
+                                                                                             background = "darkgray", 
+                                                                                             color = "white")),
+                                           across(c(`Experimental score`, `Database score`, `Textmining score`),
+                                                  ~color_tile(table_colors$color_bar_p_threshold_false, table_colors$color_bar_p_threshold_true)(.)
+                                                  ),
+                                           `Combined score` = ifelse(`Combined score` > 0.7, 
+                                                                     cell_spec(`Combined score`, background = table_colors$text_p_treshold_true, color = "white", bold = TRUE),
+                                                                     cell_spec(`Combined score`, background = "darkgray", color = "white")
+                                                                     )))),
          kbl_table = map2(prep_style, prep_format, ~.x %>% 
                             select(-c(Target, confint_cutoff)) %>% 
                             kable(escape = FALSE,
@@ -1906,18 +1918,24 @@ interaction_partner_table <- ppi_table %>%
 
 ```
 
-
-
 ### Network plots {.tabset .tabset-fade .tabset-pills}
 
 #### All interactions {.unnumbered}
 ```{r figure7A_PPInetworks-alledges, fig.height = figure_sizes$h_target_ppi, fig.cap = "PPI networks"}
-ppi_graph$graph[[2]]
+if(nrow(ppi_graph$edges_all_filter[[2]]) == 0){
+  cat("Unfortunately, no interactions were found for any of the selected targets.")
+  } else {
+    ppi_graph$graph[[2]]
+}
 ```
 
 #### High-confidence interactions only {.unnumbered}
 ```{r figure7B_PPInetworks-onlyhighconf, fig.height = figure_sizes$h_target_ppi, fig.cap = "PPI networks"}
-ppi_graph$graph[[1]]
+if(nrow(ppi_graph$edges_all_filter[[1]]) == 0){
+  cat("Unfortunately, no high-confidence interactions were found for any of the selected targets.")
+  } else {
+    ppi_graph$graph[[1]]
+}
 ```
 
 #### Summary table {.unnumbered}
@@ -1975,6 +1993,10 @@ Summary table:
 -   **Total interaction partners**: Total number of interaction partners
 \newline   
 
+In cases where none of the targets have any interaction partners (all or high-confident), the following error messages will be shown: \ 
+
+-   All interactions: `Unfortunately, no interactions were found for any of the selected targets.`
+-   High-confidence interactions: `Unfortunately, no high-confidence interactions were found for any of the selected targets.`
 
 ### Interaction partners {.tabset .tabset-fade .tabset-pills}
 
@@ -2072,7 +2094,7 @@ Summary table showing all interaction partners for each target together with add
 -   **Combined score**: STRING combined score of interaction confidence. Interactions with a combined score > 0.7 is deemed a high-confidence interaction.
 
 \newline
-High-confidence interaction partners with a confidence score \u2265 0.156 are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, while suggested interaction partners are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.
+High-confidence interaction partners with a confidence score ≥ 0.156 are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, while suggested interaction partners are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.
 
 \newline
 em-dash (---) indicates that no information was available for the target.
@@ -2116,10 +2138,7 @@ run_WGR_ppi <- my_hits_bmk %>%
   mutate(ppi_enrichResult_prep = map(data, ~.x %>% filter(!is.na(FDR))),
          ppi_enrichResult_filter = map(ppi_enrichResult_prep, ~WGR_filterFDR_ppi(WGR_prepped_df = .x)),
          nrow = map_dbl(ppi_enrichResult_filter, nrow),
-         ppi_figureheight = map_dbl(nrow, ~ifelse(.x == 0, 
-                                                  1.5, 
-                                                  ceiling(.x * 0.3) + 1)
-                                    ),
+         ppi_figureheight = map_dbl(nrow, ~ifelse(.x == 0, 1.5, ceiling(.x * 0.3) + 1)),
          ppi_colplot = map2(ppi_enrichResult_filter, nrow,  ~WGR_colplot_ppi(WGR_prepped_df = .x, n_rows = .y)))
   
 ```
@@ -2133,7 +2152,7 @@ run_through_ppi <- run_WGR_ppi %>%
   pull(database_formatted_name)
 ```
 
-Han Over-represented terms were found for:  
+Over-represented terms were found for:  
 
 `r run_through_ppi[order(run_through_ppi)]`
 
@@ -2293,7 +2312,7 @@ run_WGR_shared <- ORA_features %>%
   full_join(., ref_exp %>% distinct(uniprot) %>% nest(ref_file = everything()), by = character()) %>% 
   group_by(database) %>%
   mutate(.,
-         shared_enrichResult = map2(data, ref_file, ~WGR_run_shared(interest_data = .x, ref_data = .y, database = database)),
+         shared_enrichResult = map2(data, ref_file, ~WGR_run_shared(interest_data = .x, ref_data = .y, database = database) %>% pluck("result")),
          shared_enrichResult_prep = map(shared_enrichResult, ~WGR_prep_shared(WGR_result = .x)),
          shared_enrichResult_filter = map(shared_enrichResult_prep, ~WGR_filterFDR_shared(WGR_prepped_df = .x)),
          shared_figureheight = map_dbl(shared_enrichResult_filter, ~WGR_figureheight_shared(.x)),
@@ -2827,6 +2846,7 @@ version_info_table %>%
     
 ```
 
+\newline
 
 ```{r sessioninfo}
 

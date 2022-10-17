@@ -98,30 +98,15 @@ WGR_colplot_ppi <- function(WGR_prepped_df, n_rows){
 ## WebGestalt functions for shared features ----
 
 ### run WGR ----
-# WGR_run_shared <- function(data, database){
-#   geneFile <- data %>% distinct(uniprot)
-#   refFile <- ref_exp %>% distinct(uniprot)
-#   enrichResult <- NULL
-#   
-#   enrichResult <- WebGestaltR(enrichMethod = "ORA", 
-#                               organism = "hsapiens",
-#                               enrichDatabase = database,
-#                               interestGene = geneFile$uniprot, interestGeneType = "uniprotswissprot",
-#                               referenceGene = refFile$uniprot, referenceGeneType = "uniprotswissprot", 
-#                               fdrThr = 1, minNum = 10, fdrMethod = "BH",
-#                               isOutput = FALSE, 
-#                               projectName = NULL)  
-#   
-#   return(enrichResult)
-#   
-# }
+
+WebGestaltR_safe <- safely(WebGestaltR)
 
 WGR_run_shared <- function(interest_data, ref_data, database){
   interest_file <- interest_data %>% distinct(uniprot)
   ref_file <- ref_data %>% distinct(uniprot)
   enrichResult <- NULL
   
-  enrichResult <- WebGestaltR(enrichMethod = "ORA", 
+  enrichResult <- WebGestaltR_safe(enrichMethod = "ORA", 
                               organism = "hsapiens",
                               enrichDatabase = database,
                               interestGene = interest_file$uniprot, interestGeneType = "uniprotswissprot",
