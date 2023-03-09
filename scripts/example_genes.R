@@ -65,3 +65,14 @@ abbasi_2016 %>%
   write_lines(str_c(data_dir, "example_data/", "manuscript_abbasi_targets_uniprot.csv"))
 
 
+
+
+# Targets for manuscript
+
+abbasi_slieker <- abbasi_2016 %>% 
+  filter(str_detect(biomarker_id, "C-reactive protein|Adiponectin|γ-glutamyltranspeptidase|Interleukin-6|selectin")) %>% 
+  pull(uniprot) %>% 
+  c(.,"P25445","Q13478","Q6UWV6","Q96HD1","Q99988","Q9BZR6")
+
+abbasi_slieker %>% 
+  paste(collapse = ",")

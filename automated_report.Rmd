@@ -1,6 +1,6 @@
 ---
 title: "BALDR: Biomarker AnaLysis for Diabetes Research"
-date: "Version 0.7"
+date: "Version 0.8"
 output: 
   html_document: 
     theme: "journal"
@@ -17,13 +17,21 @@ editor_options:
     wrap: 72
 ---
 
-<img src="./report_input/cpr-logo-vector.jpg" style="position:absolute;top:140px;right:30px;width:125px" />
-<img src="./report_input/IMI_Logo_Web.png" style="position:absolute;top:230px;right:30px;width:260px" />
-<img src="./report_input/RHAPSODY_Monogram_POSTER_Color.png" style="position:absolute;top:320px;right:180px;width:80px" />
-<img src="./report_input/EFPIA_Logo_Word.png" style="position:absolute;top:320px;right:30px;width:125px" />
-<img src="./report_input/WBF_SBFI_E_CMYK_pos_hoch.jpg" style="position:absolute;top:410px;right:165px;width:125px" />
-<img src="./report_input/flag_yellow_high.jpg" style="position:absolute;top:410px;right:30px;width:125px" />
+<!-- <img src="./report_input/cpr-logo-vector.jpg" style="position:absolute;top:140px;right:30px;width:125px" /> -->
+<!-- <img src="./report_input/IMI_Logo_Web.png" style="position:absolute;top:230px;right:30px;width:260px" /> -->
+<!-- <img src="./report_input/RHAPSODY_Monogram_POSTER_Color.png" style="position:absolute;top:320px;right:180px;width:80px" /> -->
+<!-- <img src="./report_input/EFPIA_Logo_Word.png" style="position:absolute;top:320px;right:30px;width:125px" /> -->
+<!-- <img src="./report_input/WBF_SBFI_E_CMYK_pos_hoch.jpg" style="position:absolute;top:410px;right:165px;width:125px" /> -->
+<!-- <img src="./report_input/flag_yellow_high.jpg" style="position:absolute;top:410px;right:30px;width:125px" /> -->
 
+<img src="./report_input/cpr-logo-vector.jpg" style="position:absolute;top:140px;right:-85px;width:125px" />
+<img src="./report_input/IMI_Logo_Web.png" style="position:absolute;top:230px;right:-220px;width:260px" />
+
+<img src="./report_input/RHAPSODY_Monogram_POSTER_Color.png" style="position:absolute;top:320px;right:-65px;width:80px" />
+<img src="./report_input/EFPIA_Logo_Word.png" style="position:absolute;top:320px;right:-220px;width:125px" />
+
+<img src="./report_input/WBF_SBFI_E_CMYK_pos_hoch.jpg" style="position:absolute;top:410px;right:-220px;width:125px" />
+<img src="./report_input/flag_yellow_high.jpg" style="position:absolute;top:410px;right:-85px;width:125px" />
 
 
 ```{r run on server, include= FALSE}
@@ -61,7 +69,8 @@ knitr::opts_chunk$set(warning = FALSE,
                       optipng = "-o7"
                       )
 
-options(knitr.table.format = "html") 
+options(knitr.table.format = "html")
+#gc()
 ```
 
 ```{r chunk setup - server, include = FALSE, eval = TRUE, eval = run_on_server}
@@ -147,7 +156,7 @@ meta_exp_file <- read_tsv(str_c(data_dir, "prepped_data/", "RHAPSODY_rank_metaan
 
 ```{r load candidate list - local, results = 'hide', echo = FALSE, eval = run_locally}
 # example for paper
-my_list <- scan(str_c(data_dir, "example_data/", "RHAPSODY_candidates_uniprot.csv"), sep=',', what = "", quiet = TRUE) %>%
+my_list <- scan(str_c(data_dir, "example_data/", "Slieker_Abbasi_candidates_uniprot.csv"), sep=',', what = "", quiet = TRUE) %>%
   as_tibble() %>%
   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
   distinct(uniprot)
@@ -314,7 +323,7 @@ targetoverview_data <- my_hits_bmk %>%
          .keep = "unused"
          ) %>% 
   mutate(across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "\\—"))) %>% 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&mdash;"))) %>% 
   arrange(target)
 
 targetoverview_table <- targetoverview_data %>% 
@@ -399,7 +408,7 @@ Table content:
 
 \newline
 
-em-dash (---) indicates that no information was available for the target.
+em-dash (-) indicates that no information was available for the target.
 
 
 ## Functionality descriptions {.tabset .tabset-fade .tabset-pills}
@@ -415,9 +424,9 @@ descriptions_data <- my_hits_bmk %>%
          "Diabetes associations" = opentargets_assoc_label, 
          "Suggested biomarker" = suggested_biomarker
          ) %>% 
-  mutate(`Functionality description` = str_replace_na(`Functionality description`) %>% str_replace("NA", "Description missing")) %>% 
+  mutate(`Functionality description` = str_replace_na(`Functionality description`) %>% str_replace("^NA$", "Description missing")) %>% 
   mutate(across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "\\—"))) %>% 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&mdash;"))) %>% 
   arrange(target)
 
 descriptions_table <-descriptions_data %>% 
@@ -496,13 +505,13 @@ volcano_significant_all %>%
              size = 2) + 
   scale_color_manual(breaks = c("TRUE", "FALSE"),
                      values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
   scale_alpha_manual(breaks = c("TRUE", "FALSE"),
                      values = c(0.8, 0.5),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
@@ -567,7 +576,7 @@ volcano_significant %>%
                   size = 3) +
   scale_color_manual(breaks = c("TRUE", "FALSE"),
                      values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
@@ -699,7 +708,7 @@ meta_analysis_table <- my_hits_bmk %>%
                                     ) %>% 
                              arrange(Rank, as.numeric(`Adj. meta p-value`), `Detected in blood`) %>% 
                              mutate(across(everything(), str_replace_na),
-                                    across(everything(), ~str_replace(.,"^NA$|^NaN$", "\\—")))
+                                    across(everything(), ~str_replace(.,"^NA$|^NaN$", "&mdash;")))
                            ),
          prep_style = map(prep_format, ~.x %>% 
                             mutate(.,
@@ -707,6 +716,7 @@ meta_analysis_table <- my_hits_bmk %>%
                                                                    `Detected in blood` == FALSE ~ cell_spec("No", background = "#912F38", color = "white"),
                                                                    TRUE ~ `Detected in blood`),
                                    Rank = color_tile(table_colors$color_bar_p_threshold_true, table_colors$color_bar_p_threshold_false)(Rank),
+                                   Rank = ifelse(str_detect(Rank, "mdash"), "&mdash;", Rank),
                                    across(c(target, `Adj. meta p-value`),  
                                           ~cell_spec(., 
                                                      color = case_when(as.numeric(`Adj. meta p-value`) < 0.05 & !is.na(`Adj. meta p-value`) ~ table_colors$text_p_treshold_true,
@@ -768,7 +778,7 @@ Significant results with an adjusted meta p-value <`r p_value_threshold` are sho
 while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\  
 
 \newline
-em-dash (---) indicates that no information was available for the target.\  
+em-dash (-) indicates that no information was available for the target.\  
 
 
 
@@ -796,13 +806,13 @@ if (num_targets_total <= 8){
                  size = 2) +
       scale_color_manual(breaks = c("TRUE", "FALSE"),
                        values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                       labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                       labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                        drop = FALSE,
                        guide = guide_legend(override.aes = list(shape = "square", size = 5))
                        ) +
       scale_alpha_manual(breaks = c("TRUE", "FALSE"),
                        values = c(0.8, 0.5),
-                       labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                       labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                        drop = FALSE,
                        guide = guide_legend(override.aes = list(shape = "square", size = 5))
                        ) +
@@ -840,13 +850,13 @@ if (num_targets_total <= 8){
                  size = 2)  +
       scale_color_manual(breaks = c("TRUE", "FALSE"),
                      values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
       scale_alpha_manual(breaks = c("TRUE", "FALSE"),
                      values = c(0.8, 0.5),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
@@ -889,13 +899,13 @@ my_hits_exp %>%
              size = 2)  +
   scale_color_manual(breaks = c("TRUE", "FALSE"),
                      values = c(figure_colors$p_threshold_true, figure_colors$p_threshold_false),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
   scale_alpha_manual(breaks = c("TRUE", "FALSE"),
                      values = c(0.8, 0.5),
-                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value ≥ ", p_value_threshold)),
+                     labels = c(str_c("p-value < ", p_value_threshold), str_c("p-value \u2265 ", p_value_threshold)),
                      drop = FALSE,
                      guide = guide_legend(override.aes = list(shape = "square", size = 5))
                      ) +
@@ -952,7 +962,7 @@ if (num_species > 1) {
                              color = if_else(str_detect(p_value_Human, "bold") | str_detect(p_value_Mouse, "bold"), table_colors$text_p_treshold_true, table_colors$text_p_treshold_false)
                              )),
            across(c(starts_with("effect"), starts_with("p_value")), 
-                  ~ifelse(str_detect(., ">NA<"), "—", .))) %>% 
+                  ~ifelse(str_detect(., ">NA<"), "&mdash;", .))) %>% 
     ungroup() %>% 
     select(-tissue) %>% 
     kable(col.names = c("", "Omics type", 
@@ -995,7 +1005,7 @@ if (num_species > 1) {
                              color = if_else(str_detect(p_value, "bold"), table_colors$text_p_treshold_true, table_colors$text_p_treshold_false)
                              )),
            across(c(starts_with("effect"), starts_with("p_value")), 
-                  ~ifelse(str_detect(., ">NA<"), "—", .))) %>% 
+                  ~ifelse(str_detect(., ">NA<"), "&mdash;", .))) %>% 
     ungroup() %>% 
     select(-tissue) %>% 
     kable(col.names = c("", "Omics type", 
@@ -1024,7 +1034,7 @@ ranklist_tissue_table %>%
 # Save table as .xlsx
 ranklist_tissue_data %>% 
   mutate(across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$", "\\—"))) %>% 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$", "&mdash;"))) %>% 
   write_xlsx(path = "tables/table4_best_experimental_results_by_tissue.xlsx")
 ```
 
@@ -1037,7 +1047,7 @@ ranklist_tissue_table %>%
 # Save table as .xlsx
 ranklist_tissue_data %>% 
   mutate(across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$", "\\—"))) %>% 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$", "&mdash;"))) %>% 
   write_xlsx(path = str_c(rand_num,"/tables/table4_best_experimental_results_by_tissue.xlsx"))
 ```
 
@@ -1085,7 +1095,7 @@ Significant results with an adjusted p-value <`r p_value_threshold` are shown in
 while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
 
 \newline
-em-dash (---) indicates that no information was available for the target.
+em-dash (-) indicates that no information was available for the target.
 
 
 
@@ -1802,7 +1812,7 @@ ppi_sum_table <- ppi_table %>%
                             #arrange(desc(`Total interaction partners`)) %>% 
                             mutate(`Mean diabetes textmining %` = color_bar(color = "#DFDFE2")(as.numeric(`Mean diabetes textmining %`)), 
                                    `Mean diabetes textmining %` = ifelse(str_detect(`Mean diabetes textmining %`, "width: 0.00%"),
-                                                                         "—",
+                                                                         "&mdash;",
                                                                          `Mean diabetes textmining %`)
                                    )
                             ),
@@ -1835,7 +1845,7 @@ interaction_partner_table <- ppi_table %>%
                                     mutate(diabetes_perc = ifelse(diabetes_perc == -1, 0, diabetes_perc),
                                            diabetes_perc = as.numeric(diabetes_perc)) %>%
                                     mutate(across(-c(diabetes_perc), str_replace_na),
-                                           across(-c(diabetes_perc), ~str_replace(.,"^NA$|^NaN$|^-$", "\\—"))) %>% 
+                                           across(-c(diabetes_perc), ~str_replace(.,"^NA$|^NaN$|^-$", "&mdash;"))) %>% 
                                     select(
                                       `Target` = myhit_name,
                                       `Interaction partner` = interact_name, 
@@ -1864,7 +1874,7 @@ interaction_partner_table <- ppi_table %>%
                                       `Textmining score` = textmining_score,
                                       `Combined score` = combined_score
                                       ) %>% 
-                                    mutate(across(-c(Target), ~str_replace_na(.) %>% str_replace(".{1,}", "\\—")),
+                                    mutate(across(-c(Target), ~str_replace_na(.) %>% str_replace(".{1,}", "&mdash;")),
                                            confint_cutoff = 1
                                            )
                                   )
@@ -1883,7 +1893,7 @@ interaction_partner_table <- ppi_table %>%
                                                                             color_bar(color = table_colors$color_bar_p_threshold_true)(`Diabetes textmining %`),
                                                                             color_bar(color = table_colors$color_bar_p_threshold_false)(`Diabetes textmining %`)), 
                                            `Diabetes textmining %` = ifelse(str_detect(`Diabetes textmining %`, "width: 0.00%"),
-                                                                            "—",
+                                                                            "&mdash;",
                                                                             `Diabetes textmining %`),
                                            `Suggested diabetes biomarker` = ifelse(`Suggested diabetes biomarker` != "No", 
                                                                                    cell_spec(`Suggested diabetes biomarker`, 
@@ -2018,7 +2028,7 @@ interaction_partner_table$kbl_table[[2]] %>%
 # Save table as excel-file
 interaction_partner_table$prep_format[[2]] %>%
   mutate(`Diabetes textmining %` = as.character(`Diabetes textmining %`) %>% 
-           recode("0" = "—"),
+           recode("0" = "-"),
          `UniProt ID link` = str_c("https://www.uniprot.org/uniprot/", `UniProt ID`)) %>% 
   write_xlsx(path = "tables/table8A_ppi_all_interaction_partners.xlsx")
 ```
@@ -2032,7 +2042,7 @@ interaction_partner_table$kbl_table[[2]] %>%
 # Save table as excel-file
 interaction_partner_table$prep_format[[2]] %>%
   mutate(`Diabetes textmining %` = as.character(`Diabetes textmining %`) %>% 
-           recode("0" = "—"),
+           recode("0" = "-"),
          `UniProt ID link` = str_c("https://www.uniprot.org/uniprot/", `UniProt ID`)) %>% 
   write_xlsx(path = str_c(rand_num,"/tables/table8A_ppi_all_interaction_partners.xlsx"))
 ```
@@ -2054,7 +2064,7 @@ interaction_partner_table$kbl_table[[1]] %>%
 # Save table as excel-file
 interaction_partner_table$prep_format[[1]] %>%
   mutate(`Diabetes textmining %` = as.character(`Diabetes textmining %`) %>% 
-           recode("0" = "—"),
+           recode("0" = "-"),
          `UniProt ID link` = str_c("https://www.uniprot.org/uniprot/", `UniProt ID`)) %>% 
   write_xlsx(path = "tables/table8B_ppi_highconfidence_interaction_partners.xlsx")
 ```
@@ -2067,7 +2077,7 @@ interaction_partner_table$kbl_table[[1]] %>%
 # Save table as excel-file
 interaction_partner_table$prep_format[[1]] %>%
   mutate(`Diabetes textmining %` = as.character(`Diabetes textmining %`) %>% 
-           recode("0" = "—"),
+           recode("0" = "-"),
          `UniProt ID link` = str_c("https://www.uniprot.org/uniprot/", `UniProt ID`)) %>% 
   write_xlsx(path = str_c(rand_num,"/tables/table8B_ppi_highconfidence_interaction_partners.xlsx"))
 
@@ -2097,7 +2107,7 @@ Summary table showing all interaction partners for each target together with add
 High-confidence interaction partners with a confidence score ≥ 0.156 are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, while suggested interaction partners are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.
 
 \newline
-em-dash (---) indicates that no information was available for the target.
+em-dash (-) indicates that no information was available for the target.
 
 
 ## Over Representation Analysis
@@ -2570,7 +2580,7 @@ drug_interactions_data <- my_hits_bmk %>%
          `ATC codes` = str_replace_all(`ATC codes`, pattern = ",", ", "),
          across(c(`Drug groups`,`Pharmacological action`, `Target type`), str_to_title),
          across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "\\—"))) 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&mdash;"))) 
 
 drug_interactions_table_prep <- drug_interactions_data %>% 
   mutate(`Drug name` = ifelse(str_detect(`Drug name`, "^https"),
@@ -2849,9 +2859,5 @@ version_info_table %>%
 \newline
 
 ```{r sessioninfo}
-
 sessionInfo()
-
 ```
-
-
