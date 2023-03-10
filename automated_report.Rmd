@@ -17,13 +17,6 @@ editor_options:
     wrap: 72
 ---
 
-<!-- <img src="./report_input/cpr-logo-vector.jpg" style="position:absolute;top:140px;right:30px;width:125px" /> -->
-<!-- <img src="./report_input/IMI_Logo_Web.png" style="position:absolute;top:230px;right:30px;width:260px" /> -->
-<!-- <img src="./report_input/RHAPSODY_Monogram_POSTER_Color.png" style="position:absolute;top:320px;right:180px;width:80px" /> -->
-<!-- <img src="./report_input/EFPIA_Logo_Word.png" style="position:absolute;top:320px;right:30px;width:125px" /> -->
-<!-- <img src="./report_input/WBF_SBFI_E_CMYK_pos_hoch.jpg" style="position:absolute;top:410px;right:165px;width:125px" /> -->
-<!-- <img src="./report_input/flag_yellow_high.jpg" style="position:absolute;top:410px;right:30px;width:125px" /> -->
-
 <img src="./report_input/cpr-logo-vector.jpg" style="position:absolute;top:140px;right:-85px;width:125px" />
 <img src="./report_input/IMI_Logo_Web.png" style="position:absolute;top:230px;right:-220px;width:260px" />
 
@@ -70,7 +63,7 @@ knitr::opts_chunk$set(warning = FALSE,
                       )
 
 options(knitr.table.format = "html")
-#gc()
+# gc()
 ```
 
 ```{r chunk setup - server, include = FALSE, eval = TRUE, eval = run_on_server}
@@ -160,25 +153,6 @@ my_list <- scan(str_c(data_dir, "example_data/", "Slieker_Abbasi_candidates_unip
   as_tibble() %>%
   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
   distinct(uniprot)
-
-# # Troels' uniprot ID's
-# my_list <- scan(str_c(data_dir, "example_data/", "troels_uniprot_ids.csv"), sep=',', what = "", quiet = TRUE) %>%
-#   as_tibble() %>%
-#   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
-#   distinct(uniprot)
-
-# # Drugbank targets
-# my_list <- scan(str_c(data_dir, "example_data/", "drugbank_uniprot_ids.csv"), sep=',', what = "", quiet = TRUE) %>%
-#   as_tibble() %>%
-#   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
-#   distinct(uniprot)
-
-# Error on meta rank 
-# my_list <- scan(str_c(data_dir, "example_data/", "report_error.csv"), sep=',', what = "", quiet = TRUE) %>%
-#   as_tibble() %>%
-#   left_join(., uniprot_mapping, by = c("value" = "uniprot_all")) %>%
-#   distinct(uniprot)
-
 ```
 
 ```{r load candidate list - server, results = 'hide', echo = FALSE, eval = run_on_server}
@@ -323,7 +297,7 @@ targetoverview_data <- my_hits_bmk %>%
          .keep = "unused"
          ) %>% 
   mutate(across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&mdash;"))) %>% 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&ndash;"))) %>% 
   arrange(target)
 
 targetoverview_table <- targetoverview_data %>% 
@@ -408,7 +382,7 @@ Table content:
 
 \newline
 
-em-dash (-) indicates that no information was available for the target.
+en-dash (-) indicates that no information was available for the target.
 
 
 ## Functionality descriptions {.tabset .tabset-fade .tabset-pills}
@@ -426,7 +400,7 @@ descriptions_data <- my_hits_bmk %>%
          ) %>% 
   mutate(`Functionality description` = str_replace_na(`Functionality description`) %>% str_replace("^NA$", "Description missing")) %>% 
   mutate(across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&mdash;"))) %>% 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&ndash;"))) %>% 
   arrange(target)
 
 descriptions_table <-descriptions_data %>% 
@@ -708,7 +682,7 @@ meta_analysis_table <- my_hits_bmk %>%
                                     ) %>% 
                              arrange(Rank, as.numeric(`Adj. meta p-value`), `Detected in blood`) %>% 
                              mutate(across(everything(), str_replace_na),
-                                    across(everything(), ~str_replace(.,"^NA$|^NaN$", "&mdash;")))
+                                    across(everything(), ~str_replace(.,"^NA$|^NaN$", "\\-")))
                            ),
          prep_style = map(prep_format, ~.x %>% 
                             mutate(.,
@@ -716,7 +690,7 @@ meta_analysis_table <- my_hits_bmk %>%
                                                                    `Detected in blood` == FALSE ~ cell_spec("No", background = "#912F38", color = "white"),
                                                                    TRUE ~ `Detected in blood`),
                                    Rank = color_tile(table_colors$color_bar_p_threshold_true, table_colors$color_bar_p_threshold_false)(Rank),
-                                   Rank = ifelse(str_detect(Rank, "mdash"), "&mdash;", Rank),
+                                   Rank = ifelse(str_detect(Rank, "ndash"), "&ndash;", Rank),
                                    across(c(target, `Adj. meta p-value`),  
                                           ~cell_spec(., 
                                                      color = case_when(as.numeric(`Adj. meta p-value`) < 0.05 & !is.na(`Adj. meta p-value`) ~ table_colors$text_p_treshold_true,
@@ -778,7 +752,7 @@ Significant results with an adjusted meta p-value <`r p_value_threshold` are sho
 while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\  
 
 \newline
-em-dash (-) indicates that no information was available for the target.\  
+en-dash (-) indicates that no information was available for the target.\  
 
 
 
@@ -962,7 +936,7 @@ if (num_species > 1) {
                              color = if_else(str_detect(p_value_Human, "bold") | str_detect(p_value_Mouse, "bold"), table_colors$text_p_treshold_true, table_colors$text_p_treshold_false)
                              )),
            across(c(starts_with("effect"), starts_with("p_value")), 
-                  ~ifelse(str_detect(., ">NA<"), "&mdash;", .))) %>% 
+                  ~ifelse(str_detect(., ">NA<"), "&ndash;", .))) %>% 
     ungroup() %>% 
     select(-tissue) %>% 
     kable(col.names = c("", "Omics type", 
@@ -1005,7 +979,7 @@ if (num_species > 1) {
                              color = if_else(str_detect(p_value, "bold"), table_colors$text_p_treshold_true, table_colors$text_p_treshold_false)
                              )),
            across(c(starts_with("effect"), starts_with("p_value")), 
-                  ~ifelse(str_detect(., ">NA<"), "&mdash;", .))) %>% 
+                  ~ifelse(str_detect(., ">NA<"), "&ndash;", .))) %>% 
     ungroup() %>% 
     select(-tissue) %>% 
     kable(col.names = c("", "Omics type", 
@@ -1034,7 +1008,7 @@ ranklist_tissue_table %>%
 # Save table as .xlsx
 ranklist_tissue_data %>% 
   mutate(across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$", "&mdash;"))) %>% 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$", "&ndash;"))) %>% 
   write_xlsx(path = "tables/table4_best_experimental_results_by_tissue.xlsx")
 ```
 
@@ -1047,7 +1021,7 @@ ranklist_tissue_table %>%
 # Save table as .xlsx
 ranklist_tissue_data %>% 
   mutate(across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$", "&mdash;"))) %>% 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$", "&ndash;"))) %>% 
   write_xlsx(path = str_c(rand_num,"/tables/table4_best_experimental_results_by_tissue.xlsx"))
 ```
 
@@ -1095,7 +1069,7 @@ Significant results with an adjusted p-value <`r p_value_threshold` are shown in
 while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
 
 \newline
-em-dash (-) indicates that no information was available for the target.
+en-dash (-) indicates that no information was available for the target.
 
 
 
@@ -1812,7 +1786,7 @@ ppi_sum_table <- ppi_table %>%
                             #arrange(desc(`Total interaction partners`)) %>% 
                             mutate(`Mean diabetes textmining %` = color_bar(color = "#DFDFE2")(as.numeric(`Mean diabetes textmining %`)), 
                                    `Mean diabetes textmining %` = ifelse(str_detect(`Mean diabetes textmining %`, "width: 0.00%"),
-                                                                         "&mdash;",
+                                                                         "-",
                                                                          `Mean diabetes textmining %`)
                                    )
                             ),
@@ -1845,7 +1819,7 @@ interaction_partner_table <- ppi_table %>%
                                     mutate(diabetes_perc = ifelse(diabetes_perc == -1, 0, diabetes_perc),
                                            diabetes_perc = as.numeric(diabetes_perc)) %>%
                                     mutate(across(-c(diabetes_perc), str_replace_na),
-                                           across(-c(diabetes_perc), ~str_replace(.,"^NA$|^NaN$|^-$", "&mdash;"))) %>% 
+                                           across(-c(diabetes_perc), ~str_replace(.,"^NA$|^NaN$|^-$", "&ndash;"))) %>% 
                                     select(
                                       `Target` = myhit_name,
                                       `Interaction partner` = interact_name, 
@@ -1874,7 +1848,7 @@ interaction_partner_table <- ppi_table %>%
                                       `Textmining score` = textmining_score,
                                       `Combined score` = combined_score
                                       ) %>% 
-                                    mutate(across(-c(Target), ~str_replace_na(.) %>% str_replace(".{1,}", "&mdash;")),
+                                    mutate(across(-c(Target), ~str_replace_na(.) %>% str_replace(".{1,}", "-")),
                                            confint_cutoff = 1
                                            )
                                   )
@@ -1893,7 +1867,7 @@ interaction_partner_table <- ppi_table %>%
                                                                             color_bar(color = table_colors$color_bar_p_threshold_true)(`Diabetes textmining %`),
                                                                             color_bar(color = table_colors$color_bar_p_threshold_false)(`Diabetes textmining %`)), 
                                            `Diabetes textmining %` = ifelse(str_detect(`Diabetes textmining %`, "width: 0.00%"),
-                                                                            "&mdash;",
+                                                                            "-",
                                                                             `Diabetes textmining %`),
                                            `Suggested diabetes biomarker` = ifelse(`Suggested diabetes biomarker` != "No", 
                                                                                    cell_spec(`Suggested diabetes biomarker`, 
@@ -2107,7 +2081,7 @@ Summary table showing all interaction partners for each target together with add
 High-confidence interaction partners with a confidence score ≥ 0.156 are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, while suggested interaction partners are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.
 
 \newline
-em-dash (-) indicates that no information was available for the target.
+en-dash (-) indicates that no information was available for the target.
 
 
 ## Over Representation Analysis
@@ -2580,7 +2554,7 @@ drug_interactions_data <- my_hits_bmk %>%
          `ATC codes` = str_replace_all(`ATC codes`, pattern = ",", ", "),
          across(c(`Drug groups`,`Pharmacological action`, `Target type`), str_to_title),
          across(everything(), str_replace_na),
-         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&mdash;"))) 
+         across(everything(), ~str_replace(.,"^NA$|^NaN$|^-$", "&ndash;"))) 
 
 drug_interactions_table_prep <- drug_interactions_data %>% 
   mutate(`Drug name` = ifelse(str_detect(`Drug name`, "^https"),
