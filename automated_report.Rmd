@@ -30,7 +30,7 @@ editor_options:
 ```{r run on server, include= FALSE}
 # Run locally or on server
 # Input arguments: "local", "server"
-run_type <- "local"
+run_type <- "server"
 
 if(run_type == "local"){
   run_locally <- TRUE
@@ -63,7 +63,7 @@ knitr::opts_chunk$set(warning = FALSE,
                       )
 
 options(knitr.table.format = "html")
-# gc()
+gc()
 ```
 
 ```{r chunk setup - server, include = FALSE, eval = TRUE, eval = run_on_server}
@@ -1786,7 +1786,7 @@ ppi_sum_table <- ppi_table %>%
                             #arrange(desc(`Total interaction partners`)) %>% 
                             mutate(`Mean diabetes textmining %` = color_bar(color = "#DFDFE2")(as.numeric(`Mean diabetes textmining %`)), 
                                    `Mean diabetes textmining %` = ifelse(str_detect(`Mean diabetes textmining %`, "width: 0.00%"),
-                                                                         "-",
+                                                                         "\\-",
                                                                          `Mean diabetes textmining %`)
                                    )
                             ),
@@ -2451,7 +2451,7 @@ if(is.null(run_WGR_shared)){
                                  mutate(enrichmentRatio = formatC(round(enrichmentRatio, 0), format = "f", digits = 0),
                                         FDR = ifelse(FDR < 0.001, formatC(FDR, format = "e", digits = 2), formatC(round(FDR, 3), format = "f", digits = 3)),
                                         link = str_replace(link, "http://amigo.geneontology.org/amigo/term/", "https://www.ebi.ac.uk/QuickGO/term/"),
-                                        targets = str_replace_all(targets, "\n", ", ")) %>% 
+                                        targets = str_replace_all(targets, "\n", " ")) %>% 
                                  select(Database = database_formatted_name, 
                                         Term = description,
                                         `Source link` = link, 
