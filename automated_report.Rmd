@@ -1867,7 +1867,7 @@ interaction_partner_table <- ppi_table %>%
                                                                             color_bar(color = table_colors$color_bar_p_threshold_true)(`Diabetes textmining %`),
                                                                             color_bar(color = table_colors$color_bar_p_threshold_false)(`Diabetes textmining %`)), 
                                            `Diabetes textmining %` = ifelse(str_detect(`Diabetes textmining %`, "width: 0.00%"),
-                                                                            "-",
+                                                                            "\\-",
                                                                             `Diabetes textmining %`),
                                            `Suggested diabetes biomarker` = ifelse(`Suggested diabetes biomarker` != "No", 
                                                                                    cell_spec(`Suggested diabetes biomarker`, 
