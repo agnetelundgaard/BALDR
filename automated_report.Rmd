@@ -1034,7 +1034,6 @@ enable direct comparison between targets. Dependent on the number of
 targets, the plot will give target comparisons horizontally (at 8 or
 fewer targets) or vertically (more than 8 targets).\  
 
--   Line: Connects the best results (lowest adjusted p-value) from each tissue. \  
 -   Shape: Points are shaped according to omics type. \  
 -   Color: Points with an adjusted p-value <`r p_value_threshold` are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, 
     while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
@@ -1048,8 +1047,6 @@ Comparison of tissues across species for each target. The plot is
 made to enable direct comparison between tissues and species for each
 target. \  
 
--   Line: Connects the best results (lowest adjusted p-value) from each
-    tissue.\  
 -   Shape: Points are shaped according to omics type.\  
 -   Color: Points with an adjusted p-value <`r p_value_threshold` are shown in `r text_spec(about_text$text_p_threshold_true, color = about_text$color_p_threshold_true, bold = TRUE)`, 
     while non-significant points are shown in `r text_spec(about_text$text_p_threshold_false, color = about_text$color_p_threshold_false, bold = TRUE)`.\
